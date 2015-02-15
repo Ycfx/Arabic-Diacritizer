@@ -1,0 +1,232 @@
+ {% extends "layout.html" %} 
+                 
+{% block content %} 
+<div class="container">
+      <div class="header">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+            <li role="presentation" id="activehome" class="active">
+                <a style="cursor:pointer;font-size: 140%;margin-right: 10px" id="gohome">
+                    <span class="glyphicon glyphicon-home" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>الصفحة الرئيسية
+                </a>
+            </li>
+            <li role="presentation" id="activeeval">
+                <a style="cursor:pointer;font-size: 140%;margin-right: 10px" id="goevaluate" >
+                    <span class="glyphicon glyphicon-stats" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>تقييم
+                </a>
+            </li>
+            <li role="presentation" >
+                <a style="cursor:pointer;font-size: 140%;" data-toggle="modal" data-target="#myModal">
+                    <span class="glyphicon glyphicon-wrench" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>إعدادات
+                </a>
+            </li>
+           </ul>
+        </nav>
+        <h3><span class="label label-success" style="padding:12px 20px">Projet TALN</span></h3>
+      </div>
+
+      <div id="home">
+            <div class="row" style="padding:1px 15px;margin-bottom:20px">
+                <textarea class="form-control" rows="8" dir="rtl" style="font-size: 150%;font-weight: bold;" id="text"></textarea>
+                {% csrf_token %}
+                <button type="button" class="btn btn-warning" id="DoTashkeel_v1" style="margin-left:10px;float:right;font-size: 150%;">
+                    <span class="glyphicon glyphicon-edit" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>شَكِّلْ
+                </button>
+                <button type="button" class="btn btn-warning" id="DoTashkeel_v2" style="margin-left:10px;float:right;font-size: 150%;"><span class="glyphicon glyphicon-edit" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px">
+                    </span><small style="font-size: 50%;">Viterbi</small> شَكِّلْ
+                </button>
+
+                 <button type="button" class="btn btn-warning" id="DeleteDiact" style="margin-left:10px;float:right;font-size: 150%;">
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>حذف الحركات
+                </button>
+                <button type="button" class="btn btn-warning" id="GetDict" style="margin-left:10px;float:right;font-size: 150%;">
+                    <span class="glyphicon glyphicon-book" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>المعجم
+                </button>
+            </div>
+            {% load staticfiles %}
+            <div class="col-sm-12" id="loading1" style="display: none">
+                <img style="margin:1px 0 0 130px" src="{% static "images/loading2.gif" %}">
+            </div>
+
+            <div class="panel panel-info" id="results_panel" style="margin-bottom:30px;display: none">
+                <div class="panel-heading" style="direction: rtl;font-size: 150%;font-weight: bold;"><span id="time" style="margin-top:3px;font-size: 80%;float:left"></span>النتيجة :</div>
+                <div class="panel-body" id="results" style="direction: rtl;font-size: 170%;font-weight: bold;padding:30px;height:300px;overflow:auto">
+                </div>
+                <div class="panel-footer" id="statics_panel" style="direction: rtl;font-weight: bold;padding-left: 0;padding-right: 0;display: none">
+                    <span style="font-size: 130%;margin:0 10px 10px 0;float:right">إحصائيات :</span>
+                    <table class="table table-striped" style="direction: ltr;margin-bottom:-10px;font-size: 100%;">
+
+                        <tr>
+                            <th>Tokens</th>
+                            <td id="token"></td>
+                        </tr>
+                        <tr>
+                            <th>Types</th>
+                            <td id="type"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+      </div>
+
+    <div id="evaluate" style="display: none">
+
+             <div class="row" style="padding:1px 15px;margin-bottom:20px">
+                <div class="panel panel-info">
+                   <div class="panel-heading" style="direction: rtl;font-size: 150%;font-weight: bold;">النص المراد تقييمه :</div>
+                    <div class="panel-body" style="padding:5px">
+                        <textarea class="form-control" rows="8" dir="rtl" style="margin-bottom:0px;font-size: 150%;font-weight: bold;border: none" id="text_2"></textarea>
+                   </div>
+                </div>
+                 <div class="panel panel-info" id="sents_diac_corpus_panel">
+                     <div class="panel-heading" style="direction: rtl;font-size: 150%;font-weight: bold;">النص المستخدم في التقييم :</div>
+                     <div class="panel-body" style="padding:5px">
+                        <textarea class="form-control" rows="8" dir="rtl" style="margin-bottom:0px;font-size: 150%;font-weight: bold;border: none;" id="sents_diac_corpus_value"></textarea>
+                    </div>
+                </div>
+
+                {% csrf_token %}
+
+                <button type="button" class="btn btn-warning" id="GetTestSents" style="margin-left:10px;float:right;font-size: 150%;"  data-toggle="tooltip" data-placement="top" data-original-title="Cette fonction va récuperer des phrases depuis le corpus du test.">
+                    <span class="glyphicon glyphicon-arrow-down" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>إسترداد جمل للتقييم
+                </button>
+                <!--
+                <button type="button" class="btn btn-warning" id="DoTashkeel_v2_2" style="margin-left:10px;float:right;font-size: 150%;"><span class="glyphicon glyphicon-edit" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px">
+                    </span><small style="font-size: 50%;">Viterbi</small> شَكِّلْ
+                </button>
+                 -->
+
+                <button type="button" class="btn btn-warning" id="Evaluate" style="margin-left:10px;float:right;font-size: 150%;">
+                    <span class="glyphicon glyphicon-stats" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>قيّم
+                </button>
+
+                <button type="button" class="btn btn-warning" id="TashkeelAndEvaluate" style="margin-left:10px;float:right;font-size: 150%;display: none">
+                    <span class="glyphicon glyphicon-stats" aria-hidden="true" style="margin-top:3px;float:left;margin-right:10px"></span>شكّل ثم قيّم
+                </button>
+
+            </div>
+            {% load staticfiles %}
+            <div class="col-sm-12" id="loading2" style="display: none">
+                <img style="margin:1px 0 0 130px" src="{% static "images/loading2.gif" %}">
+            </div>
+
+            <div class="panel panel-info" id="results_panel_2" style="margin-bottom:30px;display: none">
+                <div class="panel-heading" style="direction: rtl;font-size: 150%;font-weight: bold;"><span id="time_2" style="margin-top:3px;font-size: 80%;float:left"></span>النتيجة :</div>
+                <div class="panel-body" id="results_2" style="direction: rtl;font-size: 170%;font-weight: bold;padding:30px;height:300px;overflow:auto">
+                </div>
+                <div class="panel-footer" id="statics_panel_2" style="direction: rtl;font-weight: bold;padding-left: 0;padding-right: 0;display: none">
+                    <span style="font-size: 130%;margin:0 10px 10px 0;float:right">إحصائيات :</span>
+                    <table class="table table-striped" style="direction: ltr;margin-bottom:-10px;font-size: 100%;">
+
+                        <tr>
+                            <th>Tokens</th>
+                            <td id="token_2"></td>
+                        </tr>
+                        <tr>
+                            <th>Types</th>
+                            <td id="type_2"></td>
+                        </tr>
+                        
+                        <tr>
+                            <th colspan="2">WER</th>
+                        </tr>  
+                        
+                        <tr>
+                            <th>wer1_Rappel</th>
+                            <td id="wer1_recall"></td>
+                        </tr>                        <tr>
+                        <!--
+                        <th>wer1_Précision</th>
+                            <td id="wer1_precision"></td>
+                        </tr>                        <tr>
+                            <th>wer1_F-Mesure</th>
+                            <td id="wer1_fmeasure"></td>
+                        </tr>
+                        -->
+                        <tr>
+                            <th>wer2_Rappel</th>
+                            <td id="wer2_recall"></td>
+                        </tr>                        <tr>
+                        <!--
+                        <th>wer2_Précision</th>
+                            <td id="wer2_precision"></td>
+                        </tr>                        <tr>
+                            <th>wer2_F-Mesure</th>
+                            <td id="wer2_fmeasure"></td>
+                        </tr>
+                        -->
+                        <tr>    
+                            <th colspan="2">DER</th>
+                        </tr>  
+                        
+                        <tr>
+                            <th>der1_Rappel</th>
+                            <td id="der1_recall"></td>
+                        </tr>                        <tr>
+                        <!--
+                        <th>der1_Précision</th>
+                            <td id="der1_precision"></td>
+                        </tr>                        <tr>
+                            <th>der1_F-Mesure</th>
+                            <td id="der1_fmeasure"></td>
+                        </tr>
+                        
+                        -->
+                        <tr>
+                            <th>der2_Rappel</th>
+                            <td id="der2_recall"></td>
+                        </tr>                        <tr>
+                        <!--
+                        <th>der2_Précision</th>
+                            <td id="der2_precision"></td>
+                        </tr>                        <tr>
+                            <th>der2_F-Mesure</th>
+                            <td id="der2_fmeasure"></td>
+                        </tr>
+                        -->
+                    </table>
+                </div>
+            </div>
+    </div>
+
+
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" style="float:left"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+            <h4 class="modal-title" id="myModalLabel" style="direction: rtl;font-weight: bold;font-size: 150%">إعدادات</h4>
+          </div>
+          <div class="modal-body" style="direction: rtl;font-weight: bold;font-size: 120%">
+            <div class="row">
+                <div class="col-sm-12">
+                    <table>
+                        <tr>
+                            <td>إظهار الإحصائيات :</td>
+                            <td><input type="checkbox" id="showStatics" style="margin:8px 20px 0 0"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top: 5px">عدد الجمل المستخرجة للإختبار (التقييم) :</td>
+                            <td style="padding-top: 5px"><input type="text" id="nbrTestSents" value="5" style="margin-right:20px;width:50px;height: 25px;padding-right: 5px"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top: 5px">Constante pour le lissage de laplace <span class="label label-danger">0 < c <= 1</span></td>
+                            <td style="padding-top: 5px"><input type="text" id="ConstLaplace" value="1" style="margin-right:20px;width:50px;height: 25px;padding-right: 5px"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal" onclick="showStatics.checked = false" style="font-weight: bold;font-size: 140%">غلق</button>
+            <button type="button" class="btn btn-primary" data-dismiss="modal" style="font-weight: bold;font-size: 140%">حفظ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+      <footer class="footer">
+        <p>© USTHB - SII 2014/2015 | V1 | MOULAHOUM Youcef & HADJ AMEUR Mohamed</p>
+      </footer>
+    </div>
+{% endblock %}
